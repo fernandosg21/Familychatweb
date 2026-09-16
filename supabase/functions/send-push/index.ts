@@ -28,13 +28,27 @@ Deno.serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const vapidPublic = Deno.env.get("VAPID_PUBLIC_KEY")!;
-    const vapidPrivate = Deno.env.get("VAPID_PRIVATE_KEY")!;
-    const vapidSubject = Deno.env.get("VAPID_SUBJECT") || "mailto:family@example.com";
 
     const admin = createClient(supabaseUrl, serviceKey, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
+
+    // Chaves VAPID guardadas no Vault do Supabase (evita depender de `supabase secrets set`).
+    const { data: secrets } = await admin
+      .schema("vault")
+      .from("decrypted_secrets")
+      .select("name, decrypted_secret")
+      .in("name", ["vapid_public_key", "vapid_private_key", "vapid_subject"]);
+
+    const secretMap = Object.fromEntries((secrets ?? []).map((s) => [s.name, s.decrypted_secret]));
+    const vapidPublic = secretMap["vapid_public_key"];
+    const vapidPrivate = secretMap["vapid_private_key"];
+    const vapidSubject = secretMap["vapid_subject"] || "mailto:family@example.com";
+
+    if (!vapidPublic || !vapidPrivate) {
+      console.error("Chaves VAPID não configuradas no Vault");
+      return new Response(JSON.stringify({ error: "VAPID não configurado" }), { status: 200 });
+    }
 
     webpush.setVapidDetails(vapidSubject, vapidPublic, vapidPrivate);
 
