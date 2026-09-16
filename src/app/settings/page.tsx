@@ -10,6 +10,7 @@ import { useMyFamily } from "@/hooks/useMyFamily";
 import { PendingApprovals } from "@/components/chat/PendingApprovals";
 import { FamilyMembersAdmin } from "@/components/chat/FamilyMembersAdmin";
 import { CreateMemberAccount } from "@/components/chat/CreateMemberAccount";
+import { AvatarCropModal } from "@/components/chat/AvatarCropModal";
 import { signOutWithChildAlert } from "@/lib/auth";
 
 export default function SettingsPage() {
@@ -27,6 +28,8 @@ export default function SettingsPage() {
   );
   const avatarInput = useRef<HTMLInputElement>(null);
   const { family } = useMyFamily();
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarSaving, setAvatarSaving] = useState(false);
 
   async function saveProfile() {
     if (!user) return;
@@ -41,8 +44,10 @@ export default function SettingsPage() {
 
   async function uploadAvatar(file: File) {
     if (!user) return;
+    setAvatarSaving(true);
     const path = `${user.id}/${Date.now()}-${file.name}`;
     const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
+    setAvatarSaving(false);
     if (error) return;
     const { data } = supabase.storage.from("avatars").getPublicUrl(path);
     await supabase.from("profiles").update({ avatar_url: data.publicUrl }).eq("id", user.id);
@@ -94,9 +99,13 @@ export default function SettingsPage() {
         <h1 className="font-medium">Configurações</h1>
       </header>
 
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 overflow-x-hidden overflow-y-auto p-6">
         <div className="mb-6 flex flex-col items-center gap-3">
-          <button onClick={() => avatarInput.current?.click()} className="relative">
+          <button
+            onClick={() => avatarInput.current?.click()}
+            disabled={avatarSaving}
+            className="relative disabled:opacity-60"
+          >
             <Avatar name={profile?.display_name ?? "Eu"} src={profile?.avatar_url} size={96} />
             <span className="absolute bottom-0 right-0 rounded-full bg-[var(--accent)] p-1.5 text-white text-xs">
               ✏️
@@ -107,9 +116,21 @@ export default function SettingsPage() {
             type="file"
             accept="image/*"
             className="hidden"
-            onChange={(e) => e.target.files?.[0] && uploadAvatar(e.target.files[0])}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) setAvatarFile(file);
+              e.target.value = "";
+            }}
           />
-          <p className="text-sm text-[var(--muted)]">
+          <AvatarCropModal
+            file={avatarFile}
+            onCancel={() => setAvatarFile(null)}
+            onConfirm={(cropped) => {
+              setAvatarFile(null);
+              uploadAvatar(cropped);
+            }}
+          />
+          <p className="max-w-full break-all text-center text-sm text-[var(--muted)]">
             {profile?.username && family ? `${profile.username}@${family.slug}` : user?.email}
           </p>
         </div>

@@ -89,7 +89,9 @@ export function useConversations() {
         refresh
       )
       .on("postgres_changes", { event: "*", schema: "public", table: "conversations" }, refresh)
-      .subscribe();
+      .subscribe((status) => {
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") refresh();
+      });
 
     return () => {
       supabase.removeChannel(channel);

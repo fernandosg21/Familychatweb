@@ -90,7 +90,11 @@ export function useMessages(conversationId: string | null) {
           );
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        // Se o canal cair (erro de rede, timeout, etc.), busca de novo em
+        // vez de deixar a tela travada até um refresh manual.
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") loadMessages();
+      });
 
     return () => {
       supabase.removeChannel(channel);

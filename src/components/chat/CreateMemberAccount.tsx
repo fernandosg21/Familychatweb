@@ -102,7 +102,7 @@ export function CreateMemberAccount() {
           </div>
           <div>
             <label className="mb-1 block text-xs font-medium text-[var(--text)]">Nome de usuário</label>
-            <div className="flex items-center gap-1">
+            <div className="flex flex-wrap items-center gap-1">
               <input
                 required
                 minLength={3}
@@ -113,9 +113,11 @@ export function CreateMemberAccount() {
                   setUsername(slugifyUsername(e.target.value));
                 }}
                 placeholder="ex: francisco"
-                className="w-full rounded-lg border border-[var(--border)] bg-[var(--panel-alt)] px-3 py-2 text-sm text-[var(--text)] outline-none focus:border-[var(--accent)]"
+                className="min-w-0 flex-1 rounded-lg border border-[var(--border)] bg-[var(--panel-alt)] px-3 py-2 text-sm text-[var(--text)] outline-none focus:border-[var(--accent)]"
               />
-              {family && <span className="shrink-0 text-sm text-[var(--muted)]">@{family.slug}</span>}
+              {family && (
+                <span className="shrink-0 truncate text-sm text-[var(--muted)]">@{family.slug}</span>
+              )}
             </div>
             <p className="mt-1 text-xs text-[var(--muted)]">
               É o que ela vai digitar para entrar, junto com a senha. Mais curto que um e-mail.
@@ -164,8 +166,8 @@ export function CreateMemberAccount() {
         <div className="mt-4 rounded-lg bg-[var(--accent)]/10 p-3 text-sm">
           <p className="font-medium text-[var(--text)]">Conta de {created.name} criada!</p>
           <p className="mt-1 text-[var(--muted)]">Anote e configure no aparelho dela:</p>
-          <p className="mt-1 font-mono text-xs text-[var(--text)]">login: {created.login}</p>
-          <p className="font-mono text-xs text-[var(--text)]">senha: {created.password}</p>
+          <p className="mt-1 break-all font-mono text-xs text-[var(--text)]">login: {created.login}</p>
+          <p className="break-all font-mono text-xs text-[var(--text)]">senha: {created.password}</p>
         </div>
       )}
     </div>

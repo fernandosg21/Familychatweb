@@ -30,7 +30,18 @@ export function FamilyMembersAdmin() {
     if (profile?.family_role !== "admin") return;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- busca inicial ao montar
     load();
-  }, [profile?.family_role, load]);
+
+    const channel = supabase
+      .channel("family-members-admin")
+      .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, load)
+      .subscribe((status) => {
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") load();
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [profile?.family_role, supabase, load]);
 
   if (profile?.family_role !== "admin") return null;
 
@@ -64,17 +75,17 @@ export function FamilyMembersAdmin() {
       <ul className="mt-3 space-y-2">
         {members.map((m) => (
           <li key={m.id} className="rounded-lg bg-[var(--panel-alt)] p-3">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-sm font-medium text-[var(--text)]">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="min-w-0 break-words text-sm font-medium text-[var(--text)]">
                 {m.display_name}
                 {m.id === user?.id && " (você)"}
                 {m.username && family && (
-                  <span className="ml-2 font-mono text-xs font-normal text-[var(--muted)]">
+                  <span className="ml-2 break-all font-mono text-xs font-normal text-[var(--muted)]">
                     {m.username}@{family.slug}
                   </span>
                 )}
               </span>
-              <div className="flex items-center gap-1.5">
+              <div className="flex shrink-0 items-center gap-1.5">
                 {m.family_role === "admin" && (
                   <span className="rounded-full bg-[var(--accent)]/15 px-2 py-0.5 text-xs font-medium text-[var(--accent)]">
                     Admin

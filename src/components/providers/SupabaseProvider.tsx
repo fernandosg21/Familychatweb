@@ -27,15 +27,25 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user);
-      if (data.user) loadProfile(data.user.id);
+    supabase.auth.getSession().then(({ data }) => {
+      const session = data.session;
+      setUser(session?.user ?? null);
+      if (session) {
+        // Garante que o socket de realtime já tem o JWT atual antes de
+        // qualquer componente se inscrever num canal postgres_changes — sem
+        // isso, a checagem de RLS do lado do Realtime pode rodar como
+        // anônimo por alguns instantes após o login e descartar os eventos
+        // silenciosamente (sem erro no cliente), como se nada tivesse chegado.
+        supabase.realtime.setAuth(session.access_token);
+        loadProfile(session.user.id);
+      }
       setLoading(false);
     });
 
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
-      if (session?.user) {
+      if (session) {
+        supabase.realtime.setAuth(session.access_token);
         loadProfile(session.user.id);
       } else {
         setProfile(null);

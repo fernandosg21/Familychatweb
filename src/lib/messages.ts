@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { isAudio, isImage, isVideo, readImageDimensions, readMediaDuration } from "@/lib/media";
+import { optimizeImage } from "@/lib/image";
 import type { MessageType } from "@/lib/types";
 
 function mimeToMessageType(mime: string): MessageType {
@@ -47,10 +48,11 @@ export async function sendFileMessage(
   supabase: SupabaseClient,
   conversationId: string,
   senderId: string,
-  file: File,
+  rawFile: File,
   caption?: string
 ) {
-  const type = mimeToMessageType(file.type);
+  const type = mimeToMessageType(rawFile.type);
+  const file = type === "image" ? await optimizeImage(rawFile) : rawFile;
 
   const { data: message, error: messageError } = await supabase
     .from("messages")
