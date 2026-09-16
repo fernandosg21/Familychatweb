@@ -7,6 +7,11 @@ export interface Profile {
   status: string;
   last_seen_at: string;
   created_at: string;
+  family_id: string | null;
+  family_role: "admin" | "member";
+  approval_status: "pending" | "approved";
+  birth_date: string | null;
+  is_adult: boolean;
 }
 
 export interface Conversation {

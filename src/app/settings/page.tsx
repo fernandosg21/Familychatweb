@@ -6,6 +6,10 @@ import { useRef, useState } from "react";
 import { useSupabase } from "@/components/providers/SupabaseProvider";
 import { Avatar } from "@/components/ui/Avatar";
 import { subscribeToPush } from "@/lib/push";
+import { useMyFamily } from "@/hooks/useMyFamily";
+import { PendingApprovals } from "@/components/chat/PendingApprovals";
+import { FamilyMembersAdmin } from "@/components/chat/FamilyMembersAdmin";
+import { signOutWithChildAlert } from "@/lib/auth";
 
 export default function SettingsPage() {
   const { supabase, user, profile, refreshProfile } = useSupabase();
@@ -17,6 +21,7 @@ export default function SettingsPage() {
     typeof window !== "undefined" && "Notification" in window ? Notification.permission : "unsupported"
   );
   const avatarInput = useRef<HTMLInputElement>(null);
+  const { family } = useMyFamily();
 
   async function saveProfile() {
     if (!user) return;
@@ -46,7 +51,7 @@ export default function SettingsPage() {
   }
 
   async function logout() {
-    await supabase.auth.signOut();
+    await signOutWithChildAlert(supabase, profile);
     router.push("/login");
     router.refresh();
   }
@@ -127,6 +132,19 @@ export default function SettingsPage() {
             </button>
           )}
         </div>
+
+        {family && (
+          <div className="mt-8 rounded-lg border border-[var(--border)] p-4">
+            <p className="font-medium text-[var(--text)]">{family.name}</p>
+            <p className="mt-1 text-sm text-[var(--muted)]">
+              {family.member_count} {family.member_count === 1 ? "membro" : "membros"}
+              {profile?.family_role === "admin" && " · você é administrador(a)"}
+            </p>
+          </div>
+        )}
+
+        <PendingApprovals />
+        <FamilyMembersAdmin />
 
         <button
           onClick={logout}

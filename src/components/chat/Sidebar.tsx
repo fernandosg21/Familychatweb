@@ -65,15 +65,17 @@ export function Sidebar() {
               <>
                 <div className="fixed inset-0 z-30" onClick={() => setMenuOpen(false)} />
                 <div className="absolute right-0 z-40 mt-1 w-52 rounded-lg bg-[var(--panel)] py-1 text-[var(--text)] shadow-xl border border-[var(--border)]">
-                  <button
-                    onClick={() => {
-                      setMenuOpen(false);
-                      setNewGroupOpen(true);
-                    }}
-                    className="block w-full px-4 py-2 text-left text-sm hover:bg-black/5 dark:hover:bg-white/10"
-                  >
-                    Novo grupo
-                  </button>
+                  {profile?.is_adult && (
+                    <button
+                      onClick={() => {
+                        setMenuOpen(false);
+                        setNewGroupOpen(true);
+                      }}
+                      className="block w-full px-4 py-2 text-left text-sm hover:bg-black/5 dark:hover:bg-white/10"
+                    >
+                      Novo grupo
+                    </button>
+                  )}
                   <Link
                     href="/settings"
                     onClick={() => setMenuOpen(false)}

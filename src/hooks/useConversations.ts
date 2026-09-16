@@ -47,6 +47,11 @@ export function useConversations() {
               status: "",
               last_seen_at: p.last_seen_at,
               created_at: row.last_message_at,
+              family_id: null,
+              family_role: "member" as const,
+              approval_status: "approved" as const,
+              birth_date: null,
+              is_adult: true,
             },
           })),
           last_message: row.last_message

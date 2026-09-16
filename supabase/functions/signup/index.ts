@@ -1,5 +1,11 @@
-// Edge Function: cadastro de novos membros da família protegido por código de convite.
-// Cria o usuário via Admin API (service role) e o perfil correspondente.
+// Edge Function: cadastro de novos membros.
+// Duas formas de entrar:
+//  - mode "create": cria uma nova família (o autor vira admin, aprovado na hora).
+//    Exige a própria data de nascimento e precisa ter 18+ anos.
+//  - mode "join": entra em uma família existente usando o código, mas fica
+//    "pending" até o admin da família aprovar. Não informa data de nascimento
+//    aqui — quem decide se é criança ou adulto é o administrador da família,
+//    preenchendo essa informação depois pelo painel.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
@@ -16,18 +22,43 @@ function json(body: unknown, status = 200) {
   });
 }
 
+function isAdultBirthDate(birthDate: string): boolean {
+  const date = new Date(birthDate);
+  if (Number.isNaN(date.getTime())) return false;
+  const eighteenYearsAgo = new Date();
+  eighteenYearsAgo.setFullYear(eighteenYearsAgo.getFullYear() - 18);
+  return date <= eighteenYearsAgo;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
   try {
-    const { email, password, displayName, inviteCode } = await req.json();
+    const { email, password, displayName, mode, familyName, familyCode, birthDate } = await req.json();
 
-    if (!email || !password || !displayName || !inviteCode) {
-      return json({ error: "Preencha todos os campos, incluindo o código de convite." }, 400);
+    if (!email || !password || !displayName || !mode) {
+      return json({ error: "Preencha todos os campos." }, 400);
     }
     if (String(password).length < 8) {
       return json({ error: "A senha precisa ter pelo menos 8 caracteres." }, 400);
+    }
+    if (mode !== "create" && mode !== "join") {
+      return json({ error: "Modo inválido." }, 400);
+    }
+    if (mode === "create" && (!familyName || !familyCode)) {
+      return json({ error: "Informe o nome da família e um código de acesso." }, 400);
+    }
+    if (mode === "join" && !familyCode) {
+      return json({ error: "Informe o código da família." }, 400);
+    }
+    if (mode === "create") {
+      if (!birthDate) {
+        return json({ error: "Informe sua data de nascimento." }, 400);
+      }
+      if (!isAdultBirthDate(birthDate)) {
+        return json({ error: "Somente um adulto (18 anos ou mais) pode criar uma família." }, 403);
+      }
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -36,21 +67,43 @@ Deno.serve(async (req) => {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    const code = String(inviteCode).trim().toUpperCase();
+    const code = String(familyCode).trim();
+    let familyId: string;
+    let familyRole: "admin" | "member" = "member";
+    let approvalStatus: "approved" | "pending" = "pending";
 
-    const { data: invite, error: inviteError } = await admin
-      .from("invite_codes")
-      .select("code, uses, max_uses, expires_at")
-      .eq("code", code)
-      .maybeSingle();
+    if (mode === "create") {
+      const { data: existing } = await admin
+        .from("families")
+        .select("id")
+        .eq("join_code", code)
+        .maybeSingle();
+      if (existing) {
+        return json({ error: "Esse código já está em uso. Escolha outro." }, 400);
+      }
 
-    if (inviteError) throw inviteError;
-    if (!invite) return json({ error: "Código de convite inválido." }, 403);
-    if (invite.expires_at && new Date(invite.expires_at) < new Date()) {
-      return json({ error: "Código de convite expirado." }, 403);
-    }
-    if (invite.uses >= invite.max_uses) {
-      return json({ error: "Código de convite já foi utilizado o máximo de vezes." }, 403);
+      const { data: family, error: familyError } = await admin
+        .from("families")
+        .insert({ name: String(familyName).trim(), join_code: code })
+        .select("id")
+        .single();
+      if (familyError || !family) throw familyError;
+
+      familyId = family.id;
+      familyRole = "admin";
+      approvalStatus = "approved";
+    } else {
+      const { data: family, error: familyError } = await admin
+        .from("families")
+        .select("id")
+        .eq("join_code", code)
+        .maybeSingle();
+      if (familyError) throw familyError;
+      if (!family) return json({ error: "Código de família inválido." }, 403);
+
+      familyId = family.id;
+      familyRole = "member";
+      approvalStatus = "pending";
     }
 
     const { data: created, error: createError } = await admin.auth.admin.createUser({
@@ -72,6 +125,10 @@ Deno.serve(async (req) => {
     const { error: profileError } = await admin.from("profiles").insert({
       id: userId,
       display_name: displayName,
+      family_id: familyId,
+      family_role: familyRole,
+      approval_status: approvalStatus,
+      birth_date: mode === "create" ? birthDate : null,
     });
 
     if (profileError) {
@@ -79,12 +136,7 @@ Deno.serve(async (req) => {
       throw profileError;
     }
 
-    await admin
-      .from("invite_codes")
-      .update({ uses: invite.uses + 1 })
-      .eq("code", code);
-
-    return json({ success: true });
+    return json({ success: true, status: approvalStatus });
   } catch (err) {
     console.error(err);
     return json({ error: "Erro inesperado ao criar conta." }, 500);
