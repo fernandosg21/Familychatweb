@@ -33,17 +33,14 @@ Deno.serve(async (req) => {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    // Chaves VAPID guardadas no Vault do Supabase (evita depender de `supabase secrets set`).
-    const { data: secrets } = await admin
-      .schema("vault")
-      .from("decrypted_secrets")
-      .select("name, decrypted_secret")
-      .in("name", ["vapid_public_key", "vapid_private_key", "vapid_subject"]);
-
-    const secretMap = Object.fromEntries((secrets ?? []).map((s) => [s.name, s.decrypted_secret]));
-    const vapidPublic = secretMap["vapid_public_key"];
-    const vapidPrivate = secretMap["vapid_private_key"];
-    const vapidSubject = secretMap["vapid_subject"] || "mailto:family@example.com";
+    // Chaves VAPID guardadas no Vault do Supabase, lidas via RPC
+    // (o schema "vault" não é exposto pela API REST diretamente).
+    const [{ data: vapidPublic }, { data: vapidPrivate }, { data: vapidSubjectRaw }] = await Promise.all([
+      admin.rpc("get_app_secret", { secret_name: "vapid_public_key" }),
+      admin.rpc("get_app_secret", { secret_name: "vapid_private_key" }),
+      admin.rpc("get_app_secret", { secret_name: "vapid_subject" }),
+    ]);
+    const vapidSubject = vapidSubjectRaw || "mailto:family@example.com";
 
     if (!vapidPublic || !vapidPrivate) {
       console.error("Chaves VAPID não configuradas no Vault");

@@ -60,15 +60,12 @@ Deno.serve(async (req) => {
       .eq("family_role", "admin")
       .neq("id", user.id);
 
-    const { data: secrets } = await admin
-      .schema("vault")
-      .from("decrypted_secrets")
-      .select("name, decrypted_secret")
-      .in("name", ["vapid_public_key", "vapid_private_key", "vapid_subject"]);
-    const secretMap = Object.fromEntries((secrets ?? []).map((s) => [s.name, s.decrypted_secret]));
-    const vapidPublic = secretMap["vapid_public_key"];
-    const vapidPrivate = secretMap["vapid_private_key"];
-    const vapidSubject = secretMap["vapid_subject"] || "mailto:family@example.com";
+    const [{ data: vapidPublic }, { data: vapidPrivate }, { data: vapidSubjectRaw }] = await Promise.all([
+      admin.rpc("get_app_secret", { secret_name: "vapid_public_key" }),
+      admin.rpc("get_app_secret", { secret_name: "vapid_private_key" }),
+      admin.rpc("get_app_secret", { secret_name: "vapid_subject" }),
+    ]);
+    const vapidSubject = vapidSubjectRaw || "mailto:family@example.com";
 
     if (!vapidPublic || !vapidPrivate) {
       return json({ success: true, skipped: true });
