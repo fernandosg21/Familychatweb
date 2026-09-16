@@ -1,8 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { Check, Copy, Share2 } from "lucide-react";
 import { useSupabase } from "@/components/providers/SupabaseProvider";
 import { useMyFamily } from "@/hooks/useMyFamily";
+
+function buildShareMessage(name: string, login: string, password: string) {
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  return `Oi ${name}! Criei sua conta no Family Chat, o nosso app de conversa da família.\n\nAcesse: ${origin}\nUsuário: ${login}\nSenha: ${password}\n\nDica: abra o link no celular e adicione à tela inicial para abrir mais rápido.`;
+}
 
 function generatePassword() {
   const chars = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789";
@@ -32,6 +38,7 @@ export function CreateMemberAccount() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [created, setCreated] = useState<{ login: string; password: string; name: string } | null>(null);
+  const [copied, setCopied] = useState(false);
 
   if (profile?.family_role !== "admin") return null;
 
@@ -62,11 +69,34 @@ export function CreateMemberAccount() {
     }
 
     setCreated({ login: `${body.username}@${body.familySlug}`, password, name: displayName });
+    setCopied(false);
     setDisplayName("");
     setUsername("");
     setUsernameTouched(false);
     setPassword(generatePassword());
     setBirthDate("");
+  }
+
+  async function copyMessage() {
+    if (!created) return;
+    const message = buildShareMessage(created.name, created.login, created.password);
+    await navigator.clipboard.writeText(message);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  async function shareMessage() {
+    if (!created) return;
+    const message = buildShareMessage(created.name, created.login, created.password);
+    if (navigator.share) {
+      try {
+        await navigator.share({ text: message });
+      } catch {
+        // usuário cancelou o compartilhamento, nada a fazer
+      }
+    } else {
+      await copyMessage();
+    }
   }
 
   return (
@@ -165,9 +195,31 @@ export function CreateMemberAccount() {
       {created && (
         <div className="mt-4 rounded-lg bg-[var(--accent)]/10 p-3 text-sm">
           <p className="font-medium text-[var(--text)]">Conta de {created.name} criada!</p>
-          <p className="mt-1 text-[var(--muted)]">Anote e configure no aparelho dela:</p>
           <p className="mt-1 break-all font-mono text-xs text-[var(--text)]">login: {created.login}</p>
           <p className="break-all font-mono text-xs text-[var(--text)]">senha: {created.password}</p>
+
+          <p className="mt-3 whitespace-pre-wrap rounded-lg border border-[var(--border)] bg-[var(--panel)] p-3 text-xs text-[var(--text)]">
+            {buildShareMessage(created.name, created.login, created.password)}
+          </p>
+
+          <div className="mt-3 flex gap-2">
+            <button
+              type="button"
+              onClick={shareMessage}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-[var(--accent)] px-3 py-1.5 text-xs font-medium text-white"
+            >
+              <Share2 size={14} />
+              Enviar mensagem
+            </button>
+            <button
+              type="button"
+              onClick={copyMessage}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-full border border-[var(--border)] px-3 py-1.5 text-xs font-medium text-[var(--text)]"
+            >
+              {copied ? <Check size={14} /> : <Copy size={14} />}
+              {copied ? "Copiado" : "Copiar"}
+            </button>
+          </div>
         </div>
       )}
     </div>
