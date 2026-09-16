@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, LogOut, Pencil, ShieldAlert } from "lucide-react";
 import { useSupabase } from "@/components/providers/SupabaseProvider";
 import { Avatar } from "@/components/ui/Avatar";
@@ -31,18 +31,37 @@ import {
 export default function SettingsPage() {
   const { supabase, user, profile, refreshProfile } = useSupabase();
   const router = useRouter();
-  const [displayName, setDisplayName] = useState(profile?.display_name ?? "");
-  const [status, setStatus] = useState(profile?.status ?? "");
+  const [displayName, setDisplayName] = useState("");
+  const [status, setStatus] = useState("");
   const [saving, setSaving] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [passwordMessage, setPasswordMessage] = useState<{ type: "ok" | "error"; text: string } | null>(null);
-  const [notifStatus, setNotifStatus] = useState<NotificationPermission | "unsupported">(
-    typeof window !== "undefined" && "Notification" in window ? Notification.permission : "unsupported"
-  );
+  // Começa igual no servidor e no primeiro render do cliente ("unsupported")
+  // para não causar erro de hidratação; o valor real só existe no navegador,
+  // então é lido depois, em useEffect.
+  const [notifStatus, setNotifStatus] = useState<NotificationPermission | "unsupported">("unsupported");
   const avatarInput = useRef<HTMLInputElement>(null);
   const { family } = useMyFamily();
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- lê API só disponível no navegador
+    if ("Notification" in window) setNotifStatus(Notification.permission);
+  }, []);
+
+  // O perfil chega de forma assíncrona depois do primeiro render (o hook
+  // useState acima só olha profile uma vez, no mount, quando ainda é null).
+  // Preenche os campos assim que o perfil carregar, só na primeira vez —
+  // usar profile?.id como dependência evita sobrescrever o que a pessoa
+  // estiver digitando quando o perfil é apenas atualizado (ex: após salvar).
+  useEffect(() => {
+    if (!profile) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- sincroniza com o perfil assim que ele carrega
+    setDisplayName(profile.display_name ?? "");
+    setStatus(profile.status ?? "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.id]);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarSaving, setAvatarSaving] = useState(false);
 
@@ -154,12 +173,16 @@ export default function SettingsPage() {
             <input
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
+              autoComplete="off"
+              name="display-name"
               className="w-full rounded-lg border border-[var(--border)] bg-[var(--panel-alt)] px-3 py-2 text-[var(--text)] outline-none focus:border-[var(--accent)]"
             />
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-[var(--text)]">Recado</label>
             <input
+              autoComplete="off"
+              name="status-message"
               value={status}
               onChange={(e) => setStatus(e.target.value)}
               placeholder="Disponível"
