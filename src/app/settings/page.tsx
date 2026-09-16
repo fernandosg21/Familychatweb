@@ -18,6 +18,10 @@ export default function SettingsPage() {
   const [displayName, setDisplayName] = useState(profile?.display_name ?? "");
   const [status, setStatus] = useState(profile?.status ?? "");
   const [saving, setSaving] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordSaving, setPasswordSaving] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState<{ type: "ok" | "error"; text: string } | null>(null);
   const [notifStatus, setNotifStatus] = useState<NotificationPermission | "unsupported">(
     typeof window !== "undefined" && "Notification" in window ? Notification.permission : "unsupported"
   );
@@ -43,6 +47,28 @@ export default function SettingsPage() {
     const { data } = supabase.storage.from("avatars").getPublicUrl(path);
     await supabase.from("profiles").update({ avatar_url: data.publicUrl }).eq("id", user.id);
     await refreshProfile();
+  }
+
+  async function changePassword() {
+    setPasswordMessage(null);
+    if (newPassword.length < 6) {
+      setPasswordMessage({ type: "error", text: "A senha precisa ter pelo menos 6 caracteres." });
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordMessage({ type: "error", text: "As senhas não coincidem." });
+      return;
+    }
+    setPasswordSaving(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setPasswordSaving(false);
+    if (error) {
+      setPasswordMessage({ type: "error", text: "Não foi possível trocar a senha. Tente novamente." });
+      return;
+    }
+    setNewPassword("");
+    setConfirmPassword("");
+    setPasswordMessage({ type: "ok", text: "Senha alterada com sucesso." });
   }
 
   async function enableNotifications() {
@@ -132,6 +158,38 @@ export default function SettingsPage() {
               Ativar notificações
             </button>
           )}
+        </div>
+
+        <div className="mt-8 rounded-lg border border-[var(--border)] p-4">
+          <p className="font-medium text-[var(--text)]">Trocar senha</p>
+          <div className="mt-3 space-y-3">
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Nova senha"
+              className="w-full rounded-lg border border-[var(--border)] bg-[var(--panel-alt)] px-3 py-2 text-[var(--text)] outline-none focus:border-[var(--accent)]"
+            />
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Confirmar nova senha"
+              className="w-full rounded-lg border border-[var(--border)] bg-[var(--panel-alt)] px-3 py-2 text-[var(--text)] outline-none focus:border-[var(--accent)]"
+            />
+            {passwordMessage && (
+              <p className={`text-sm ${passwordMessage.type === "ok" ? "text-[var(--accent)]" : "text-red-500"}`}>
+                {passwordMessage.text}
+              </p>
+            )}
+            <button
+              onClick={changePassword}
+              disabled={passwordSaving || !newPassword || !confirmPassword}
+              className="w-full rounded-lg bg-[var(--accent)] py-2.5 font-medium text-white hover:bg-[var(--accent-dark)] disabled:opacity-60"
+            >
+              {passwordSaving ? "Salvando..." : "Salvar nova senha"}
+            </button>
+          </div>
         </div>
 
         {family && (
