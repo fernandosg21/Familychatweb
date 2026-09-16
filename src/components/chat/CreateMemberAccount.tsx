@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useSupabase } from "@/components/providers/SupabaseProvider";
+import { useMyFamily } from "@/hooks/useMyFamily";
 
 function generatePassword() {
   const chars = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789";
@@ -10,15 +11,27 @@ function generatePassword() {
   return out;
 }
 
+function slugifyUsername(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9._]+/g, "")
+    .slice(0, 20);
+}
+
 export function CreateMemberAccount() {
   const { supabase, profile } = useSupabase();
+  const { family } = useMyFamily();
   const [open, setOpen] = useState(false);
   const [displayName, setDisplayName] = useState("");
+  const [username, setUsername] = useState("");
+  const [usernameTouched, setUsernameTouched] = useState(false);
   const [password, setPassword] = useState(generatePassword());
   const [birthDate, setBirthDate] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [created, setCreated] = useState<{ email: string; password: string; name: string } | null>(null);
+  const [created, setCreated] = useState<{ login: string; password: string; name: string } | null>(null);
 
   if (profile?.family_role !== "admin") return null;
 
@@ -38,7 +51,7 @@ export function CreateMemberAccount() {
         apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         Authorization: `Bearer ${session?.access_token}`,
       },
-      body: JSON.stringify({ displayName, password, birthDate: birthDate || undefined }),
+      body: JSON.stringify({ displayName, username, password, birthDate: birthDate || undefined }),
     });
     const body = await res.json();
     setLoading(false);
@@ -48,8 +61,10 @@ export function CreateMemberAccount() {
       return;
     }
 
-    setCreated({ email: body.email, password, name: displayName });
+    setCreated({ login: `${body.username}@${body.familySlug}`, password, name: displayName });
     setDisplayName("");
+    setUsername("");
+    setUsernameTouched(false);
     setPassword(generatePassword());
     setBirthDate("");
   }
@@ -77,9 +92,34 @@ export function CreateMemberAccount() {
             <input
               required
               value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                setDisplayName(value);
+                if (!usernameTouched) setUsername(slugifyUsername(value.split(" ")[0] ?? ""));
+              }}
               className="w-full rounded-lg border border-[var(--border)] bg-[var(--panel-alt)] px-3 py-2 text-sm text-[var(--text)] outline-none focus:border-[var(--accent)]"
             />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-[var(--text)]">Nome de usuário</label>
+            <div className="flex items-center gap-1">
+              <input
+                required
+                minLength={3}
+                maxLength={20}
+                value={username}
+                onChange={(e) => {
+                  setUsernameTouched(true);
+                  setUsername(slugifyUsername(e.target.value));
+                }}
+                placeholder="ex: francisco"
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--panel-alt)] px-3 py-2 text-sm text-[var(--text)] outline-none focus:border-[var(--accent)]"
+              />
+              {family && <span className="shrink-0 text-sm text-[var(--muted)]">@{family.slug}</span>}
+            </div>
+            <p className="mt-1 text-xs text-[var(--muted)]">
+              É o que ela vai digitar para entrar, junto com a senha. Mais curto que um e-mail.
+            </p>
           </div>
           <div>
             <label className="mb-1 block text-xs font-medium text-[var(--text)]">Data de nascimento (opcional)</label>
@@ -124,7 +164,7 @@ export function CreateMemberAccount() {
         <div className="mt-4 rounded-lg bg-[var(--accent)]/10 p-3 text-sm">
           <p className="font-medium text-[var(--text)]">Conta de {created.name} criada!</p>
           <p className="mt-1 text-[var(--muted)]">Anote e configure no aparelho dela:</p>
-          <p className="mt-1 font-mono text-xs text-[var(--text)]">login: {created.email}</p>
+          <p className="mt-1 font-mono text-xs text-[var(--text)]">login: {created.login}</p>
           <p className="font-mono text-xs text-[var(--text)]">senha: {created.password}</p>
         </div>
       )}

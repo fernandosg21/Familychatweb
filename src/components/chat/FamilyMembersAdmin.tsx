@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useSupabase } from "@/components/providers/SupabaseProvider";
+import { useMyFamily } from "@/hooks/useMyFamily";
 
 interface FamilyMember {
   id: string;
@@ -10,10 +11,12 @@ interface FamilyMember {
   is_adult: boolean;
   family_role: "admin" | "member";
   approval_status: "pending" | "approved";
+  username: string | null;
 }
 
 export function FamilyMembersAdmin() {
   const { supabase, profile, user } = useSupabase();
+  const { family } = useMyFamily();
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [savingId, setSavingId] = useState<string | null>(null);
@@ -65,6 +68,11 @@ export function FamilyMembersAdmin() {
               <span className="text-sm font-medium text-[var(--text)]">
                 {m.display_name}
                 {m.id === user?.id && " (você)"}
+                {m.username && family && (
+                  <span className="ml-2 font-mono text-xs font-normal text-[var(--muted)]">
+                    {m.username}@{family.slug}
+                  </span>
+                )}
               </span>
               <div className="flex items-center gap-1.5">
                 {m.family_role === "admin" && (

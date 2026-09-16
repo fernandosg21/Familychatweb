@@ -52,6 +52,7 @@ export function useConversations() {
               approval_status: "approved" as const,
               birth_date: null,
               is_adult: true,
+              username: null,
             },
           })),
           last_message: row.last_message

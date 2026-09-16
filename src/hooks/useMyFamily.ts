@@ -6,6 +6,7 @@ import { useSupabase } from "@/components/providers/SupabaseProvider";
 interface MyFamily {
   id: string;
   name: string;
+  slug: string;
   member_count: number;
   pending_count: number;
 }

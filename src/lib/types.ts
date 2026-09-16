@@ -12,6 +12,7 @@ export interface Profile {
   approval_status: "pending" | "approved";
   birth_date: string | null;
   is_adult: boolean;
+  username: string | null;
 }
 
 export interface Conversation {

@@ -38,12 +38,19 @@ Deno.serve(async (req) => {
     } = await callerClient.auth.getUser();
     if (userError || !user) return json({ error: "Não autenticado." }, 401);
 
-    const { displayName, password, birthDate } = await req.json();
-    if (!displayName || !password) {
-      return json({ error: "Informe nome e senha." }, 400);
+    const { displayName, password, birthDate, username } = await req.json();
+    if (!displayName || !password || !username) {
+      return json({ error: "Informe nome, nome de usuário e senha." }, 400);
     }
     if (String(password).length < 8) {
       return json({ error: "A senha precisa ter pelo menos 8 caracteres." }, 400);
+    }
+    const cleanUsername = String(username).trim().toLowerCase();
+    if (!/^[a-z0-9._]{3,20}$/.test(cleanUsername)) {
+      return json(
+        { error: "Usuário deve ter de 3 a 20 letras minúsculas, números, pontos ou underscore." },
+        400
+      );
     }
 
     const admin = createClient(supabaseUrl, serviceKey, {
@@ -58,6 +65,23 @@ Deno.serve(async (req) => {
 
     if (!callerProfile || callerProfile.family_role !== "admin") {
       return json({ error: "Só administradores da família podem criar contas." }, 403);
+    }
+
+    const { data: family } = await admin
+      .from("families")
+      .select("slug")
+      .eq("id", callerProfile.family_id)
+      .single();
+    if (!family) throw new Error("Família não encontrada.");
+
+    const { data: existingUsername } = await admin
+      .from("profiles")
+      .select("id")
+      .eq("family_id", callerProfile.family_id)
+      .ilike("username", cleanUsername)
+      .maybeSingle();
+    if (existingUsername) {
+      return json({ error: "Esse nome de usuário já está em uso na família." }, 400);
     }
 
     const syntheticEmail = `${crypto.randomUUID()}@familychat.local`;
@@ -77,6 +101,7 @@ Deno.serve(async (req) => {
       family_role: "member",
       approval_status: "approved",
       birth_date: birthDate || null,
+      username: cleanUsername,
     });
 
     if (profileError) {
@@ -84,7 +109,7 @@ Deno.serve(async (req) => {
       throw profileError;
     }
 
-    return json({ success: true, email: syntheticEmail });
+    return json({ success: true, username: cleanUsername, familySlug: family.slug });
   } catch (err) {
     console.error(err);
     return json({ error: "Erro inesperado ao criar a conta." }, 500);
