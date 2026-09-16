@@ -40,12 +40,23 @@ export function FamilyMembersAdmin() {
     load();
   }
 
+  async function toggleAdmin(member: FamilyMember) {
+    setSavingId(member.id);
+    await supabase.rpc("set_family_role", {
+      p_member_id: member.id,
+      p_role: member.family_role === "admin" ? "member" : "admin",
+    });
+    setSavingId(null);
+    load();
+  }
+
   return (
     <div className="mt-8 rounded-lg border border-[var(--border)] p-4">
       <p className="font-medium text-[var(--text)]">Membros da família</p>
       <p className="mt-1 text-sm text-[var(--muted)]">
         Defina a data de nascimento de cada um para marcar quem é adulto ou criança. Crianças não
-        criam famílias nem grupos até isso ser preenchido.
+        criam famílias nem grupos até isso ser preenchido. Adultos aprovados também podem virar
+        administradores.
       </p>
       <ul className="mt-3 space-y-2">
         {members.map((m) => (
@@ -55,15 +66,22 @@ export function FamilyMembersAdmin() {
                 {m.display_name}
                 {m.id === user?.id && " (você)"}
               </span>
-              <span
-                className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                  m.is_adult ? "bg-[var(--accent)]/15 text-[var(--accent)]" : "bg-orange-500/15 text-orange-500"
-                }`}
-              >
-                {m.is_adult ? "Adulto" : "Criança"}
-              </span>
+              <div className="flex items-center gap-1.5">
+                {m.family_role === "admin" && (
+                  <span className="rounded-full bg-[var(--accent)]/15 px-2 py-0.5 text-xs font-medium text-[var(--accent)]">
+                    Admin
+                  </span>
+                )}
+                <span
+                  className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                    m.is_adult ? "bg-[var(--accent)]/15 text-[var(--accent)]" : "bg-orange-500/15 text-orange-500"
+                  }`}
+                >
+                  {m.is_adult ? "Adulto" : "Criança"}
+                </span>
+              </div>
             </div>
-            <div className="mt-2 flex items-center gap-2">
+            <div className="mt-2 flex flex-wrap items-center gap-2">
               <input
                 type="date"
                 defaultValue={m.birth_date ?? ""}
@@ -77,6 +95,15 @@ export function FamilyMembersAdmin() {
               >
                 Salvar
               </button>
+              {m.is_adult && m.approval_status === "approved" && m.id !== user?.id && (
+                <button
+                  onClick={() => toggleAdmin(m)}
+                  disabled={savingId === m.id}
+                  className="rounded-full border border-[var(--border)] px-3 py-1 text-xs font-medium text-[var(--text)] disabled:opacity-50"
+                >
+                  {m.family_role === "admin" ? "Remover admin" : "Tornar admin"}
+                </button>
+              )}
             </div>
           </li>
         ))}

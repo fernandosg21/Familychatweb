@@ -9,6 +9,7 @@ import { subscribeToPush } from "@/lib/push";
 import { useMyFamily } from "@/hooks/useMyFamily";
 import { PendingApprovals } from "@/components/chat/PendingApprovals";
 import { FamilyMembersAdmin } from "@/components/chat/FamilyMembersAdmin";
+import { CreateMemberAccount } from "@/components/chat/CreateMemberAccount";
 import { signOutWithChildAlert } from "@/lib/auth";
 
 export default function SettingsPage() {
@@ -144,6 +145,7 @@ export default function SettingsPage() {
         )}
 
         <PendingApprovals />
+        <CreateMemberAccount />
         <FamilyMembersAdmin />
 
         <button

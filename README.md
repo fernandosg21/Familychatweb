@@ -21,6 +21,10 @@ Tudo é client-side reativo via Supabase Realtime — não há reload de página
   nascimento (precisa ter 18+ anos) e vira administrador
 - Novos membros pedem para entrar com esse código e ficam **pendentes até o administrador aprovar**
   (o administrador aprova/recusa em Configurações)
+- **Administrador pode criar a conta de um membro diretamente** (útil para crianças sem e-mail
+  próprio): informa nome e senha em Configurações e recebe o login pronto para configurar no
+  aparelho dela — a conta já nasce aprovada
+- Administrador pode **promover outro adulto aprovado a administrador** (ou remover)
 - **Crianças não criam famílias nem grupos**: só o administrador define quem é adulto ou criança,
   preenchendo a data de nascimento de cada membro em Configurações — até isso ser feito, a conta é
   tratada como criança
@@ -80,6 +84,7 @@ supabase/
   migrations/                Schema SQL (tabelas, RLS, RPCs, triggers)
   functions/signup/               Edge Function: cria conta + cria/entra numa família
   functions/manage-member/        Edge Function: admin aprova/recusa pedido de entrada
+  functions/create-family-member/ Edge Function: admin cria a conta de um membro direto
   functions/notify-child-logout/  Edge Function: avisa o admin quando uma criança sai da conta
   functions/send-push/            Edge Function: dispara Web Push a cada mensagem nova
 scripts/generate-icons.mjs  Gera os PNGs do ícone a partir do SVG
@@ -132,6 +137,7 @@ update public.families set join_code = 'NOVOCODIGO' where name = 'Nome da famíl
    supabase functions deploy signup --no-verify-jwt
    supabase functions deploy send-push --no-verify-jwt
    supabase functions deploy manage-member
+   supabase functions deploy create-family-member
    supabase functions deploy notify-child-logout
    ```
 
