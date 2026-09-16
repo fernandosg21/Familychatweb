@@ -93,8 +93,13 @@ export function useConversations() {
         if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") refresh();
       });
 
+    // Apoio ao canal de tempo real: garante que a lista de conversas se
+    // atualiza sozinha mesmo se o push falhar por algum motivo.
+    const pollId = setInterval(refresh, 12000);
+
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(pollId);
     };
   }, [supabase, user, refresh]);
 

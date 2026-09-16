@@ -38,8 +38,11 @@ export function FamilyMembersAdmin() {
         if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") load();
       });
 
+    const pollId = setInterval(load, 15000);
+
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(pollId);
     };
   }, [profile?.family_role, supabase, load]);
 

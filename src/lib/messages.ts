@@ -1,7 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { isAudio, isImage, isVideo, readImageDimensions, readMediaDuration } from "@/lib/media";
 import { optimizeImage } from "@/lib/image";
-import type { MessageType } from "@/lib/types";
+import type { Message, MessageType } from "@/lib/types";
+
+const MESSAGE_SELECT = "*, sender:profiles(id,display_name,avatar_url), attachments:message_attachments(*)";
 
 function mimeToMessageType(mime: string): MessageType {
   if (isImage(mime)) return "image";
@@ -17,14 +19,19 @@ export async function sendTextMessage(
   body: string,
   replyToId?: string | null
 ) {
-  const { error } = await supabase.from("messages").insert({
-    conversation_id: conversationId,
-    sender_id: senderId,
-    type: "text",
-    body,
-    reply_to_id: replyToId ?? null,
-  });
+  const { data, error } = await supabase
+    .from("messages")
+    .insert({
+      conversation_id: conversationId,
+      sender_id: senderId,
+      type: "text",
+      body,
+      reply_to_id: replyToId ?? null,
+    })
+    .select(MESSAGE_SELECT)
+    .single();
   if (error) throw error;
+  return data as unknown as Message;
 }
 
 export async function sendLocationMessage(
@@ -35,13 +42,18 @@ export async function sendLocationMessage(
   lng: number,
   label?: string
 ) {
-  const { error } = await supabase.from("messages").insert({
-    conversation_id: conversationId,
-    sender_id: senderId,
-    type: "location",
-    metadata: { lat, lng, label: label ?? null },
-  });
+  const { data, error } = await supabase
+    .from("messages")
+    .insert({
+      conversation_id: conversationId,
+      sender_id: senderId,
+      type: "location",
+      metadata: { lat, lng, label: label ?? null },
+    })
+    .select(MESSAGE_SELECT)
+    .single();
   if (error) throw error;
+  return data as unknown as Message;
 }
 
 export async function sendFileMessage(
@@ -62,7 +74,7 @@ export async function sendFileMessage(
       type,
       body: caption || null,
     })
-    .select("id")
+    .select(MESSAGE_SELECT)
     .single();
 
   if (messageError || !message) throw messageError;
@@ -104,7 +116,7 @@ export async function sendFileMessage(
 
   if (attachmentError) throw attachmentError;
 
-  return message.id as string;
+  return message as unknown as Message;
 }
 
 export async function getSignedAttachmentUrl(supabase: SupabaseClient, storagePath: string) {

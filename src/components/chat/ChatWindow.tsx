@@ -17,7 +17,7 @@ export function ChatWindow({ conversationId }: { conversationId: string }) {
   const { supabase, user } = useSupabase();
   const conversation = useConversation(conversationId);
   const participants = useParticipants(conversationId);
-  const { messages, loading } = useMessages(conversationId);
+  const { messages, loading, addLocalMessage } = useMessages(conversationId);
   const onlineIds = usePresence();
   const { typingUsers } = useTypingIndicator(conversationId);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -106,7 +106,7 @@ export function ChatWindow({ conversationId }: { conversationId: string }) {
         })}
       </div>
 
-      <MessageInput conversationId={conversationId} />
+      <MessageInput conversationId={conversationId} onSent={addLocalMessage} />
     </div>
   );
 }

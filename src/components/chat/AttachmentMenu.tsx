@@ -9,14 +9,14 @@ interface AttachmentMenuProps {
 
 function MenuIcon({ children, label, color }: { children: React.ReactNode; label: string; color: string }) {
   return (
-    <div className="flex flex-col items-center gap-1.5">
+    <div className="flex w-16 flex-col items-center gap-1.5">
       <div
-        className="flex h-12 w-12 items-center justify-center rounded-full text-white"
+        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-xl text-white"
         style={{ background: color }}
       >
         {children}
       </div>
-      <span className="text-xs text-[var(--text)]">{label}</span>
+      <span className="whitespace-nowrap text-xs text-[var(--text)]">{label}</span>
     </div>
   );
 }
@@ -48,7 +48,7 @@ export function AttachmentMenu({ onFiles, onLocation }: AttachmentMenuProps) {
       {open && (
         <>
           <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
-          <div className="absolute bottom-14 left-0 z-40 grid grid-cols-3 gap-4 rounded-xl bg-[var(--panel)] p-4 shadow-2xl border border-[var(--border)] animate-in">
+          <div className="animate-in absolute bottom-14 left-0 z-40 flex w-max max-w-[calc(100vw-2rem)] flex-wrap gap-3 rounded-xl border border-[var(--border)] bg-[var(--panel)] p-4 shadow-2xl">
             <button onClick={() => pick(photoInput)} type="button">
               <MenuIcon label="Galeria" color="#7f66ff">
                 🖼️

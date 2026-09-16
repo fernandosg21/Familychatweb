@@ -27,10 +27,15 @@ export function PendingApprovals() {
     const channel = supabase
       .channel("pending-family-members")
       .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, load)
-      .subscribe();
+      .subscribe((status) => {
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") load();
+      });
+
+    const pollId = setInterval(load, 15000);
 
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(pollId);
     };
   }, [profile?.family_role, supabase, load]);
 

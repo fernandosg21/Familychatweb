@@ -6,8 +6,15 @@ import { sendFileMessage, sendLocationMessage, sendTextMessage } from "@/lib/mes
 import { useTypingIndicator } from "@/hooks/useTypingIndicator";
 import { AttachmentMenu } from "@/components/chat/AttachmentMenu";
 import { AudioRecorder } from "@/components/chat/AudioRecorder";
+import type { Message } from "@/lib/types";
 
-export function MessageInput({ conversationId }: { conversationId: string }) {
+export function MessageInput({
+  conversationId,
+  onSent,
+}: {
+  conversationId: string;
+  onSent: (message: Message) => void;
+}) {
   const { supabase, user } = useSupabase();
   const { notifyTyping } = useTypingIndicator(conversationId);
   const [text, setText] = useState("");
@@ -38,7 +45,8 @@ export function MessageInput({ conversationId }: { conversationId: string }) {
     if (textareaRef.current) textareaRef.current.style.height = "auto";
     setSending(true);
     try {
-      await sendTextMessage(supabase, conversationId, user.id, trimmed);
+      const message = await sendTextMessage(supabase, conversationId, user.id, trimmed);
+      onSent(message);
     } finally {
       setSending(false);
     }
@@ -49,7 +57,8 @@ export function MessageInput({ conversationId }: { conversationId: string }) {
     setSending(true);
     try {
       for (const file of Array.from(files)) {
-        await sendFileMessage(supabase, conversationId, user.id, file);
+        const message = await sendFileMessage(supabase, conversationId, user.id, file);
+        onSent(message);
       }
     } catch (err) {
       console.error(err);
@@ -64,13 +73,14 @@ export function MessageInput({ conversationId }: { conversationId: string }) {
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         try {
-          await sendLocationMessage(
+          const message = await sendLocationMessage(
             supabase,
             conversationId,
             user.id,
             pos.coords.latitude,
             pos.coords.longitude
           );
+          onSent(message);
         } finally {
           setLocationBusy(false);
         }
@@ -85,7 +95,8 @@ export function MessageInput({ conversationId }: { conversationId: string }) {
     if (!user) return;
     setSending(true);
     try {
-      await sendFileMessage(supabase, conversationId, user.id, file);
+      const message = await sendFileMessage(supabase, conversationId, user.id, file);
+      onSent(message);
     } finally {
       setSending(false);
     }
