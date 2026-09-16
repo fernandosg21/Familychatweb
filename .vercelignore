@@ -1,3 +1,4 @@
 # Não fazem parte do build do Next.js — só do lado Supabase.
-supabase
-scripts
+# Barra inicial: só a pasta na raiz do projeto, não src/lib/supabase.
+/supabase
+/scripts
