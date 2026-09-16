@@ -1,0 +1,3 @@
+# Não fazem parte do build do Next.js — só do lado Supabase.
+supabase
+scripts
