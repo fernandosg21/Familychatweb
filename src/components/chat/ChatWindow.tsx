@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
+import { ChevronLeft, MessageCircle } from "lucide-react";
 import { useSupabase } from "@/components/providers/SupabaseProvider";
 import { useConversation } from "@/hooks/useConversation";
 import { useParticipants } from "@/hooks/useParticipants";
@@ -65,9 +66,7 @@ export function ChatWindow({ conversationId }: { conversationId: string }) {
     <div className="flex h-full flex-col">
       <header className="flex items-center gap-3 border-b border-[var(--border)] bg-[var(--header)] px-3 py-2.5 text-white">
         <Link href="/chat" className="rounded-full p-1 hover:bg-white/10 md:hidden" aria-label="Voltar">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="m15 18-6-6 6-6" />
-          </svg>
+          <ChevronLeft size={22} />
         </Link>
         <Avatar name={title} src={avatarUrl} online={isOtherOnline} />
         <div className="min-w-0 flex-1">
@@ -79,9 +78,10 @@ export function ChatWindow({ conversationId }: { conversationId: string }) {
       <div ref={scrollRef} className="chat-bg flex-1 overflow-y-auto py-3">
         {loading && <p className="py-8 text-center text-sm text-[var(--muted)]">Carregando conversa...</p>}
         {!loading && messages.length === 0 && (
-          <p className="py-8 text-center text-sm text-[var(--muted)]">
-            Nenhuma mensagem ainda. Diga oi! 👋
-          </p>
+          <div className="flex flex-col items-center gap-2 py-8 text-center text-sm text-[var(--muted)]">
+            <MessageCircle size={28} className="text-[var(--muted)]" />
+            Nenhuma mensagem ainda. Diga oi!
+          </div>
         )}
         {messages.map((message, idx) => {
           const prev = messages[idx - 1];

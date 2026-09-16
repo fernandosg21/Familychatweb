@@ -3,6 +3,18 @@
 import { useCallback, useEffect, useState } from "react";
 import { useSupabase } from "@/components/providers/SupabaseProvider";
 import { useMyFamily } from "@/hooks/useMyFamily";
+import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface FamilyMember {
   id: string;
@@ -89,18 +101,8 @@ export function FamilyMembersAdmin() {
                 )}
               </span>
               <div className="flex shrink-0 items-center gap-1.5">
-                {m.family_role === "admin" && (
-                  <span className="rounded-full bg-[var(--accent)]/15 px-2 py-0.5 text-xs font-medium text-[var(--accent)]">
-                    Admin
-                  </span>
-                )}
-                <span
-                  className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                    m.is_adult ? "bg-[var(--accent)]/15 text-[var(--accent)]" : "bg-orange-500/15 text-orange-500"
-                  }`}
-                >
-                  {m.is_adult ? "Adulto" : "Criança"}
-                </span>
+                {m.family_role === "admin" && <Badge>Admin</Badge>}
+                <Badge variant={m.is_adult ? "default" : "warning"}>{m.is_adult ? "Adulto" : "Criança"}</Badge>
               </div>
             </div>
             <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -118,13 +120,38 @@ export function FamilyMembersAdmin() {
                 Salvar
               </button>
               {m.is_adult && m.approval_status === "approved" && m.id !== user?.id && (
-                <button
-                  onClick={() => toggleAdmin(m)}
-                  disabled={savingId === m.id}
-                  className="rounded-full border border-[var(--border)] px-3 py-1 text-xs font-medium text-[var(--text)] disabled:opacity-50"
-                >
-                  {m.family_role === "admin" ? "Remover admin" : "Tornar admin"}
-                </button>
+                m.family_role === "admin" ? (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <button
+                        disabled={savingId === m.id}
+                        className="rounded-full border border-[var(--border)] px-3 py-1 text-xs font-medium text-[var(--text)] disabled:opacity-50"
+                      >
+                        Remover admin
+                      </button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Remover administrador?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          {m.display_name} deixará de poder aprovar membros, criar contas e gerenciar a família.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => toggleAdmin(m)}>Remover</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                ) : (
+                  <button
+                    onClick={() => toggleAdmin(m)}
+                    disabled={savingId === m.id}
+                    className="rounded-full border border-[var(--border)] px-3 py-1 text-xs font-medium text-[var(--text)] disabled:opacity-50"
+                  >
+                    Tornar admin
+                  </button>
+                )
               )}
             </div>
           </li>

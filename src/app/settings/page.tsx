@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useRef, useState } from "react";
+import { ChevronLeft, LogOut, Pencil, ShieldAlert } from "lucide-react";
 import { useSupabase } from "@/components/providers/SupabaseProvider";
 import { Avatar } from "@/components/ui/Avatar";
 import { subscribeToPush } from "@/lib/push";
@@ -12,6 +13,20 @@ import { FamilyMembersAdmin } from "@/components/chat/FamilyMembersAdmin";
 import { CreateMemberAccount } from "@/components/chat/CreateMemberAccount";
 import { AvatarCropModal } from "@/components/chat/AvatarCropModal";
 import { signOutWithChildAlert } from "@/lib/auth";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function SettingsPage() {
   const { supabase, user, profile, refreshProfile } = useSupabase();
@@ -92,9 +107,7 @@ export default function SettingsPage() {
     <div className="mx-auto flex h-dvh max-w-lg flex-col bg-[var(--panel)]">
       <header className="flex items-center gap-3 bg-[var(--header)] px-4 py-3 text-white">
         <Link href="/chat" className="rounded-full p-1 hover:bg-white/10" aria-label="Voltar">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="m15 18-6-6 6-6" />
-          </svg>
+          <ChevronLeft size={22} />
         </Link>
         <h1 className="font-medium">Configurações</h1>
       </header>
@@ -107,8 +120,8 @@ export default function SettingsPage() {
             className="relative disabled:opacity-60"
           >
             <Avatar name={profile?.display_name ?? "Eu"} src={profile?.avatar_url} size={96} />
-            <span className="absolute bottom-0 right-0 rounded-full bg-[var(--accent)] p-1.5 text-white text-xs">
-              ✏️
+            <span className="absolute bottom-0 right-0 flex rounded-full bg-[var(--accent)] p-1.5 text-white">
+              <Pencil size={14} />
             </span>
           </button>
           <input
@@ -167,19 +180,22 @@ export default function SettingsPage() {
           <p className="mt-1 text-sm text-[var(--muted)]">
             Receba um alerta em tempo real quando chegar uma nova mensagem.
           </p>
-          {notifStatus === "granted" && <p className="mt-2 text-sm text-[var(--accent)]">Ativadas ✓</p>}
+          {notifStatus === "granted" && (
+            <Badge className="mt-2" variant="default">
+              Ativadas
+            </Badge>
+          )}
           {notifStatus === "denied" && (
-            <p className="mt-2 text-sm text-red-500">
-              Bloqueadas no navegador. Ative nas configurações do site.
-            </p>
+            <Alert variant="destructive" className="mt-2">
+              <ShieldAlert />
+              <AlertDescription>Bloqueadas no navegador. Ative nas configurações do site.</AlertDescription>
+            </Alert>
           )}
           {notifStatus !== "granted" && notifStatus !== "unsupported" && (
-            <button
-              onClick={enableNotifications}
-              className="mt-3 rounded-full bg-[var(--accent)] px-4 py-1.5 text-sm font-medium text-white hover:bg-[var(--accent-dark)]"
-            >
+            <label className="mt-3 flex items-center gap-2 text-sm text-[var(--text)]">
+              <Checkbox checked={false} onCheckedChange={() => enableNotifications()} />
               Ativar notificações
-            </button>
+            </label>
           )}
         </div>
 
@@ -201,9 +217,9 @@ export default function SettingsPage() {
               className="w-full rounded-lg border border-[var(--border)] bg-[var(--panel-alt)] px-3 py-2 text-[var(--text)] outline-none focus:border-[var(--accent)]"
             />
             {passwordMessage && (
-              <p className={`text-sm ${passwordMessage.type === "ok" ? "text-[var(--accent)]" : "text-red-500"}`}>
-                {passwordMessage.text}
-              </p>
+              <Alert variant={passwordMessage.type === "ok" ? "success" : "destructive"}>
+                <AlertDescription>{passwordMessage.text}</AlertDescription>
+              </Alert>
             )}
             <button
               onClick={changePassword}
@@ -229,12 +245,28 @@ export default function SettingsPage() {
         <CreateMemberAccount />
         <FamilyMembersAdmin />
 
-        <button
-          onClick={logout}
-          className="mt-8 w-full rounded-lg border border-red-500 py-2.5 font-medium text-red-500 hover:bg-red-500/10"
-        >
-          Sair da conta
-        </button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <button className="mt-8 flex w-full items-center justify-center gap-2 rounded-lg border border-red-500 py-2.5 font-medium text-red-500 hover:bg-red-500/10">
+              <LogOut size={18} />
+              Sair da conta
+            </button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Sair da conta?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Você vai precisar entrar de novo com seu login e senha para voltar a usar o app neste aparelho.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction className="bg-red-500 hover:bg-red-600" onClick={logout}>
+                Sair
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

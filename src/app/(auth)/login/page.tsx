@@ -3,7 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { CircleAlert } from "lucide-react";
 import { useSupabase } from "@/components/providers/SupabaseProvider";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function LoginPage() {
   const { supabase } = useSupabase();
@@ -70,7 +72,12 @@ export default function LoginPage() {
           autoComplete="current-password"
         />
       </div>
-      {error && <p className="text-sm text-red-500">{error}</p>}
+      {error && (
+        <Alert variant="destructive">
+          <CircleAlert />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
       <button
         type="submit"
         disabled={loading}

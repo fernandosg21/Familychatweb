@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Hourglass } from "lucide-react";
 import { useSupabase } from "@/components/providers/SupabaseProvider";
 import { useMyFamily } from "@/hooks/useMyFamily";
 import { Spinner } from "@/components/ui/Spinner";
@@ -22,8 +23,8 @@ export function ApprovalGate({ children }: { children: React.ReactNode }) {
   if (profile.approval_status === "pending") {
     return (
       <div className="flex h-dvh flex-col items-center justify-center gap-4 bg-[var(--bg)] p-8 text-center">
-        <span className="text-5xl" aria-hidden>
-          ⏳
+        <span className="flex size-14 items-center justify-center rounded-full bg-[var(--accent)]/15 text-[var(--accent)]">
+          <Hourglass size={28} />
         </span>
         <h1 className="text-xl font-semibold text-[var(--text)]">Aguardando aprovação</h1>
         <p className="max-w-sm text-sm text-[var(--muted)]">

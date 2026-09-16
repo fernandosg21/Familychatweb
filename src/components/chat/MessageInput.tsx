@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { Mic, Send } from "lucide-react";
 import { useSupabase } from "@/components/providers/SupabaseProvider";
 import { sendFileMessage, sendLocationMessage, sendTextMessage } from "@/lib/messages";
 import { useTypingIndicator } from "@/hooks/useTypingIndicator";
@@ -137,9 +138,7 @@ export function MessageInput({
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-white disabled:opacity-60"
               aria-label="Enviar"
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M3 20.5v-17l19 8.5-19 8.5Zm2-2.9 12.85-5.6L5 6.4v4.2l7.5 1.4-7.5 1.4v4.2Z" />
-              </svg>
+              <Send size={18} />
             </button>
           ) : (
             <button
@@ -148,10 +147,7 @@ export function MessageInput({
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[var(--muted)] hover:bg-black/5 dark:hover:bg-white/10"
               aria-label="Gravar áudio"
             >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3Z" />
-                <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4" />
-              </svg>
+              <Mic size={20} />
             </button>
           )}
         </>

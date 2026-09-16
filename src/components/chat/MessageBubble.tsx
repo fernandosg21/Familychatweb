@@ -1,33 +1,11 @@
+import { CheckCheck } from "lucide-react";
 import { formatMessageTime } from "@/lib/format";
 import type { Message } from "@/lib/types";
 import { AttachmentView } from "@/components/chat/AttachmentView";
 import { LocationCard } from "@/components/chat/LocationCard";
 
 function Ticks({ read }: { read: boolean }) {
-  return (
-    <svg
-      width="16"
-      height="11"
-      viewBox="0 0 16 11"
-      fill="none"
-      className={read ? "text-[#53bdeb]" : "text-[var(--muted)]"}
-    >
-      <path
-        d="M11.5 1 5.2 8 2.3 5.2"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M15 1 8.7 8 7.6 6.9"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
+  return <CheckCheck size={15} className={read ? "text-[#53bdeb]" : "text-[var(--muted)]"} />;
 }
 
 export function MessageBubble({

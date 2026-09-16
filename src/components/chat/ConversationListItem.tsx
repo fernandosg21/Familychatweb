@@ -2,17 +2,19 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Camera, FileText, MapPin, Mic, Video } from "lucide-react";
 import { useSupabase } from "@/components/providers/SupabaseProvider";
 import { Avatar } from "@/components/ui/Avatar";
+import { Badge } from "@/components/ui/badge";
 import { formatConversationTime } from "@/lib/format";
-import type { ConversationWithMeta } from "@/lib/types";
+import type { ConversationWithMeta, MessageType } from "@/lib/types";
 
-const TYPE_PREVIEW: Record<string, string> = {
-  image: "📷 Foto",
-  video: "🎥 Vídeo",
-  audio: "🎤 Áudio",
-  document: "📄 Documento",
-  location: "📍 Localização",
+const TYPE_PREVIEW: Partial<Record<MessageType, { icon: React.ComponentType<{ size?: number }>; label: string }>> = {
+  image: { icon: Camera, label: "Foto" },
+  video: { icon: Video, label: "Vídeo" },
+  audio: { icon: Mic, label: "Áudio" },
+  document: { icon: FileText, label: "Documento" },
+  location: { icon: MapPin, label: "Localização" },
 };
 
 export function ConversationListItem({
@@ -31,12 +33,10 @@ export function ConversationListItem({
   const avatarUrl = conversation.type === "group" ? conversation.avatar_url : other?.profile?.avatar_url;
 
   const last = conversation.last_message;
-  const preview = last
-    ? last.type === "text"
-      ? last.body || ""
-      : TYPE_PREVIEW[last.type] || ""
-    : "Nenhuma mensagem ainda";
+  const typePreview = last && last.type !== "text" ? TYPE_PREVIEW[last.type] : undefined;
+  const preview = last ? (last.type === "text" ? last.body || "" : typePreview?.label ?? "") : "Nenhuma mensagem ainda";
   const prefix = last && last.sender_id === user?.id ? "Você: " : "";
+  const PreviewIcon = typePreview?.icon;
 
   return (
     <Link
@@ -60,14 +60,15 @@ export function ConversationListItem({
           )}
         </div>
         <div className="flex items-center justify-between gap-2">
-          <p className="truncate text-sm text-[var(--muted)]">
+          <p className="flex min-w-0 items-center gap-1 truncate text-sm text-[var(--muted)]">
+            {PreviewIcon && <PreviewIcon size={14} />}
             {prefix}
             {preview}
           </p>
           {conversation.unread_count > 0 && (
-            <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] px-1.5 text-xs font-medium text-white">
+            <Badge className="h-5 min-w-5 justify-center bg-[var(--accent)] px-1.5 text-white">
               {conversation.unread_count}
-            </span>
+            </Badge>
           )}
         </div>
       </div>

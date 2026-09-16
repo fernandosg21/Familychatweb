@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { Camera, FileText, Image as ImageIcon, MapPin, Paperclip } from "lucide-react";
 
 interface AttachmentMenuProps {
   onFiles: (files: FileList) => void;
@@ -11,7 +12,7 @@ function MenuIcon({ children, label, color }: { children: React.ReactNode; label
   return (
     <div className="flex w-16 flex-col items-center gap-1.5">
       <div
-        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-xl text-white"
+        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-white [&>svg]:size-5"
         style={{ background: color }}
       >
         {children}
@@ -40,9 +41,7 @@ export function AttachmentMenu({ onFiles, onLocation }: AttachmentMenuProps) {
         className="flex h-10 w-10 items-center justify-center rounded-full text-[var(--muted)] hover:bg-black/5 dark:hover:bg-white/10"
         aria-label="Anexar"
       >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M21.44 11.05 12.25 20.24a5 5 0 0 1-7.07-7.07l9.19-9.19a3.5 3.5 0 0 1 4.95 4.95L9.83 18.42a2 2 0 0 1-2.83-2.83l8.49-8.48" />
-        </svg>
+        <Paperclip size={22} />
       </button>
 
       {open && (
@@ -51,17 +50,17 @@ export function AttachmentMenu({ onFiles, onLocation }: AttachmentMenuProps) {
           <div className="animate-in absolute bottom-14 left-0 z-40 flex w-max max-w-[calc(100vw-2rem)] flex-wrap gap-3 rounded-xl border border-[var(--border)] bg-[var(--panel)] p-4 shadow-2xl">
             <button onClick={() => pick(photoInput)} type="button">
               <MenuIcon label="Galeria" color="#7f66ff">
-                🖼️
+                <ImageIcon />
               </MenuIcon>
             </button>
             <button onClick={() => pick(cameraInput)} type="button">
               <MenuIcon label="Câmera" color="#ff5f5f">
-                📷
+                <Camera />
               </MenuIcon>
             </button>
             <button onClick={() => pick(documentInput)} type="button">
               <MenuIcon label="Documento" color="#5f8fff">
-                📄
+                <FileText />
               </MenuIcon>
             </button>
             <button
@@ -72,7 +71,7 @@ export function AttachmentMenu({ onFiles, onLocation }: AttachmentMenuProps) {
               type="button"
             >
               <MenuIcon label="Localização" color="#00a884">
-                📍
+                <MapPin />
               </MenuIcon>
             </button>
           </div>

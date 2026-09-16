@@ -1,3 +1,4 @@
+import { MapPin } from "lucide-react";
 import type { LocationMetadata } from "@/lib/types";
 
 export function LocationCard({ location }: { location: LocationMetadata }) {
@@ -21,7 +22,7 @@ export function LocationCard({ location }: { location: LocationMetadata }) {
         title="Localização compartilhada"
       />
       <div className="flex items-center gap-2 bg-black/5 px-3 py-2 dark:bg-white/5">
-        <span aria-hidden>📍</span>
+        <MapPin size={16} className="text-[var(--accent)]" />
         <span className="text-sm font-medium">{location.label || "Localização atual"}</span>
       </div>
     </a>

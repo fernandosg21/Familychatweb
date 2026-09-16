@@ -3,7 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { CircleAlert, CircleCheck, Info } from "lucide-react";
 import { useSupabase } from "@/components/providers/SupabaseProvider";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 type Mode = "join" | "create";
 
@@ -73,32 +76,37 @@ export default function RegisterPage() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 rounded-xl bg-[var(--panel)] p-6 shadow-lg">
-      <div className="grid grid-cols-2 gap-1 rounded-lg bg-[var(--panel-alt)] p-1">
-        <button
-          type="button"
-          onClick={() => setMode("join")}
-          className={`rounded-md py-1.5 text-sm font-medium transition ${
+      <RadioGroup
+        value={mode}
+        onValueChange={(value) => setMode(value as Mode)}
+        className="grid grid-cols-2 gap-1 rounded-lg bg-[var(--panel-alt)] p-1"
+      >
+        <label
+          className={`flex cursor-pointer items-center justify-center gap-2 rounded-md py-1.5 text-sm font-medium transition ${
             mode === "join" ? "bg-[var(--accent)] text-white" : "text-[var(--muted)]"
           }`}
         >
+          <RadioGroupItem value="join" className="sr-only" />
           Entrar numa família
-        </button>
-        <button
-          type="button"
-          onClick={() => setMode("create")}
-          className={`rounded-md py-1.5 text-sm font-medium transition ${
+        </label>
+        <label
+          className={`flex cursor-pointer items-center justify-center gap-2 rounded-md py-1.5 text-sm font-medium transition ${
             mode === "create" ? "bg-[var(--accent)] text-white" : "text-[var(--muted)]"
           }`}
         >
+          <RadioGroupItem value="create" className="sr-only" />
           Criar uma família
-        </button>
-      </div>
+        </label>
+      </RadioGroup>
 
       {mode === "join" && (
-        <p className="rounded-lg bg-[var(--panel-alt)] p-3 text-xs text-[var(--muted)]">
-          Crianças também podem entrar assim — o administrador da família define depois quem é
-          adulto ou criança na própria conta.
-        </p>
+        <Alert>
+          <Info />
+          <AlertDescription>
+            Crianças também podem entrar assim — o administrador da família define depois quem é
+            adulto ou criança na própria conta.
+          </AlertDescription>
+        </Alert>
       )}
 
       <div>
@@ -180,8 +188,18 @@ export default function RegisterPage() {
         )}
       </div>
 
-      {error && <p className="text-sm text-red-500">{error}</p>}
-      {info && <p className="text-sm text-[var(--accent)]">{info}</p>}
+      {error && (
+        <Alert variant="destructive">
+          <CircleAlert />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      {info && (
+        <Alert variant="success">
+          <CircleCheck />
+          <AlertDescription>{info}</AlertDescription>
+        </Alert>
+      )}
       <button
         type="submit"
         disabled={loading}

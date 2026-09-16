@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Send, Trash2 } from "lucide-react";
 import { formatDuration } from "@/lib/format";
 
 export function AudioRecorder({
@@ -79,7 +80,7 @@ export function AudioRecorder({
         className="flex h-10 w-10 items-center justify-center rounded-full text-red-500 hover:bg-black/5 dark:hover:bg-white/10"
         aria-label="Cancelar gravação"
       >
-        🗑️
+        <Trash2 size={20} />
       </button>
       <div className="flex flex-1 items-center gap-2">
         <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-red-500" />
@@ -91,7 +92,7 @@ export function AudioRecorder({
         className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--accent)] text-white"
         aria-label="Enviar áudio"
       >
-        ➤
+        <Send size={18} />
       </button>
     </div>
   );

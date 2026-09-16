@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
+import { X } from "lucide-react";
 
 export function Modal({
   open,
@@ -38,7 +39,7 @@ export function Modal({
             className="rounded-full p-1 text-[var(--muted)] hover:bg-black/5 dark:hover:bg-white/10"
             aria-label="Fechar"
           >
-            ✕
+            <X size={18} />
           </button>
         </div>
         <div className="max-h-[70vh] overflow-y-auto p-4">{children}</div>

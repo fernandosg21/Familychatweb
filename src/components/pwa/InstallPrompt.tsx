@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { Share } from "lucide-react";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -70,8 +71,8 @@ export function InstallPrompt() {
           <p className="font-medium text-[var(--text)]">Instalar o Family Chat</p>
           {isIOS ? (
             <p className="mt-1 text-sm text-[var(--muted)]">
-              Toque em <span aria-hidden>⎋</span> Compartilhar e depois em &quot;Adicionar à Tela de
-              Início&quot;.
+              Toque em <Share size={13} className="inline align-text-bottom" aria-hidden /> Compartilhar e depois em
+              &quot;Adicionar à Tela de Início&quot;.
             </p>
           ) : (
             <p className="mt-1 text-sm text-[var(--muted)]">

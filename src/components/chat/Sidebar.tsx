@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { EllipsisVertical, MessageSquarePlus } from "lucide-react";
 import { useSupabase } from "@/components/providers/SupabaseProvider";
 import { useConversations } from "@/hooks/useConversations";
 import { usePresence } from "@/components/providers/PresenceProvider";
@@ -45,9 +46,7 @@ export function Sidebar() {
             aria-label="Nova conversa"
             title="Nova conversa"
           >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-            </svg>
+            <MessageSquarePlus size={22} />
           </button>
           <div className="relative">
             <button
@@ -55,11 +54,7 @@ export function Sidebar() {
               className="rounded-full p-2 hover:bg-white/10"
               aria-label="Mais opções"
             >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-                <circle cx="12" cy="5" r="1.6" />
-                <circle cx="12" cy="12" r="1.6" />
-                <circle cx="12" cy="19" r="1.6" />
-              </svg>
+              <EllipsisVertical size={22} />
             </button>
             {menuOpen && (
               <>

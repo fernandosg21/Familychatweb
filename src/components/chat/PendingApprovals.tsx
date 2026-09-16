@@ -1,7 +1,20 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { Info } from "lucide-react";
 import { useSupabase } from "@/components/providers/SupabaseProvider";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface PendingMember {
   id: string;
@@ -63,7 +76,10 @@ export function PendingApprovals() {
     <div className="mt-8 rounded-lg border border-[var(--border)] p-4">
       <p className="font-medium text-[var(--text)]">Pedidos de entrada na família</p>
       {members.length === 0 && (
-        <p className="mt-1 text-sm text-[var(--muted)]">Nenhum pedido pendente no momento.</p>
+        <Alert className="mt-2">
+          <Info />
+          <AlertDescription>Nenhum pedido pendente no momento.</AlertDescription>
+        </Alert>
       )}
       <ul className="mt-3 space-y-2">
         {members.map((m) => (
@@ -77,13 +93,34 @@ export function PendingApprovals() {
               >
                 Aprovar
               </button>
-              <button
-                onClick={() => respond(m.id, "reject")}
-                disabled={busyId === m.id}
-                className="rounded-full border border-red-500 px-3 py-1 text-xs font-medium text-red-500 disabled:opacity-50"
-              >
-                Recusar
-              </button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <button
+                    disabled={busyId === m.id}
+                    className="rounded-full border border-red-500 px-3 py-1 text-xs font-medium text-red-500 disabled:opacity-50"
+                  >
+                    Recusar
+                  </button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Recusar {m.display_name}?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      A conta criada por essa pessoa será apagada. Ela pode pedir entrada de novo depois, se
+                      quiser.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      className="bg-red-500 hover:bg-red-600"
+                      onClick={() => respond(m.id, "reject")}
+                    >
+                      Recusar
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </li>
         ))}
