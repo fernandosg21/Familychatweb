@@ -6,7 +6,7 @@ import { useSupabase } from "@/components/providers/SupabaseProvider";
 import { useConversation } from "@/hooks/useConversation";
 import { useParticipants } from "@/hooks/useParticipants";
 import { useMessages } from "@/hooks/useMessages";
-import { usePresence } from "@/hooks/usePresence";
+import { usePresence } from "@/components/providers/PresenceProvider";
 import { useTypingIndicator } from "@/hooks/useTypingIndicator";
 import { MessageBubble } from "@/components/chat/MessageBubble";
 import { MessageInput } from "@/components/chat/MessageInput";

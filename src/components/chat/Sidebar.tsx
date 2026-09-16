@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSupabase } from "@/components/providers/SupabaseProvider";
 import { useConversations } from "@/hooks/useConversations";
-import { usePresence } from "@/hooks/usePresence";
+import { usePresence } from "@/components/providers/PresenceProvider";
 import { Avatar } from "@/components/ui/Avatar";
 import { ConversationListItem } from "@/components/chat/ConversationListItem";
 import { NewChatDialog } from "@/components/chat/NewChatDialog";

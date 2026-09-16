@@ -109,7 +109,9 @@ export default function SettingsPage() {
             className="hidden"
             onChange={(e) => e.target.files?.[0] && uploadAvatar(e.target.files[0])}
           />
-          <p className="text-sm text-[var(--muted)]">{user?.email}</p>
+          <p className="text-sm text-[var(--muted)]">
+            {profile?.username && family ? `${profile.username}@${family.slug}` : user?.email}
+          </p>
         </div>
 
         <div className="space-y-4">
