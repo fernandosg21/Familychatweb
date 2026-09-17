@@ -114,7 +114,12 @@ Deno.serve(async (req) => {
         } catch (err) {
           const statusCode = (err as { statusCode?: number })?.statusCode;
           results.push({ endpoint: sub.endpoint, ok: false, status: statusCode });
-          if (statusCode === 404 || statusCode === 410) {
+          // 404/410: endpoint não existe mais. 401/403: a assinatura foi
+          // criada com uma chave VAPID diferente da atual (ex: dispositivo
+          // que se inscreveu antes da correção do get_vapid_public_key) —
+          // nesses casos o navegador nunca vai exibir a notificação, então
+          // não faz sentido manter a inscrição.
+          if ([401, 403, 404, 410].includes(statusCode ?? 0)) {
             await admin.from("push_subscriptions").delete().eq("id", sub.id);
           }
         }

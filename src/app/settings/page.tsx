@@ -113,7 +113,7 @@ export default function SettingsPage() {
   async function enableNotifications() {
     const permission = await Notification.requestPermission();
     setNotifStatus(permission);
-    if (permission === "granted") await subscribeToPush();
+    if (permission === "granted") await subscribeToPush(supabase);
   }
 
   async function logout() {

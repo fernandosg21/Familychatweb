@@ -13,7 +13,7 @@ export function PushSubscriber() {
     async function run() {
       try {
         if (Notification.permission !== "granted") return;
-        const sub = await subscribeToPush();
+        const sub = await subscribeToPush(supabase);
         if (!sub) return;
         const json = sub.toJSON();
         if (!json.endpoint || !json.keys) return;
